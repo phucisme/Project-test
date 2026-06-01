@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Garden - Game Trồng Cây Trên Mây</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <p>Đang tải Cloud Garden...</p>
+        </div>
+    </div>
+
+    <!-- Auth Pages -->
+    <div id="auth-page" class="page hidden">
+        <div class="auth-container">
+            <div class="auth-box">
+                <h1>Cloud Garden</h1>
+                <p class="subtitle">Trò chơi trồng cây trên mây</p>
+
+                <!-- Login Tab -->
+                <div id="login-tab" class="auth-tab active">
+                    <h2>Đăng Nhập</h2>
+                    <form id="login-form">
+                        <input type="text" id="login-username" placeholder="Tên đăng nhập" required>
+                        <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                        <button type="submit">Đăng Nhập</button>
+                    </form>
+                    <p class="switch-auth">Chưa có tài khoản? <a href="#" onclick="switchAuthTab('register')">Đăng ký</a></p>
+                </div>
+
+                <!-- Register Tab -->
+                <div id="register-tab" class="auth-tab hidden">
+                    <h2>Đăng Ký</h2>
+                    <form id="register-form">
+                        <input type="text" id="register-username" placeholder="Tên đăng nhập" required>
+                        <input type="email" id="register-email" placeholder="Email" required>
+                        <input type="password" id="register-password" placeholder="Mật khẩu" required>
+                        <input type="password" id="register-confirm" placeholder="Xác nhận mật khẩu" required>
+                        <button type="submit">Đăng Ký</button>
+                    </form>
+                    <p class="switch-auth">Đã có tài khoản? <a href="#" onclick="switchAuthTab('login')">Đăng nhập</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Page -->
+    <div id="game-page" class="page hidden">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="header-left">
+                <h1>Cloud Garden</h1>
+            </div>
+            <div class="header-center">
+                <div class="header-stat">
+                    <span class="stat-label">Level:</span>
+                    <span id="player-level" class="stat-value">1</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">EXP:</span>
+                    <span id="player-exp" class="stat-value">0</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-stat coins">
+                    <span class="coin-icon">💰</span>
+                    <span id="player-coins" class="stat-value">0</span>
+                </div>
+                <button class="menu-btn" onclick="openMenu()">☰</button>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Left Sidebar - Quick Actions -->
+            <aside class="sidebar-left">
+                <div class="sidebar-section">
+                    <h3>Hành động</h3>
+                    <button class="action-btn" onclick="switchView('garden')">🌱 Vườn</button>
+                    <button class="action-btn" onclick="switchView('inventory')">🎒 Túi đồ</button>
+                    <button class="action-btn" onclick="switchView('shop')">🏪 Cửa hàng</button>
+                    <button class="action-btn" onclick="switchView('marketplace')">🏬 Chợ</button>
+                    <button class="action-btn" onclick="switchView('craft')">⚙️ Chế tạo</button>
+                    <button class="action-btn" onclick="switchView('quests')">📜 Nhiệm vụ</button>
+                    <button class="action-btn" onclick="switchView('friends')">👥 Bạn bè</button>
+                </div>
+            </aside>
+
+            <!-- Center - Main Content -->
+            <main class="content-area">
+                <!-- Garden View -->
+                <div id="view-garden" class="view active">
+                    <div class="view-header">
+                        <h2>🌍 Vườn của tôi</h2>
+                        <div class="view-controls">
+                            <button class="ctrl-btn" onclick="toggleAutoPlant()" title="Tự động trồng">Auto Plant</button>
+                            <button class="ctrl-btn" onclick="toggleAutoHarvest()" title="Tự động thu hoạch">Auto Harvest</button>
+                        </div>
+                    </div>
+                    <div id="garden-container" class="garden-grid">
+                        <!-- Garden plots will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Inventory View -->
+                <div id="view-inventory" class="view hidden">
+                    <div class="view-header">
+                        <h2>🎒 Túi đồ</h2>
+                    </div>
+                    <div id="inventory-list" class="inventory-grid">
+                        <!-- Inventory items will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Shop View -->
+                <div id="view-shop" class="view hidden">
+                    <div class="view-header">
+                        <h2>🏪 Cửa hàng</h2>
+                    </div>
+                    <div id="shop-items" class="shop-grid">
+                        <!-- Shop items will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Marketplace View -->
+                <div id="view-marketplace" class="view hidden">
+                    <div class="view-header">
+                        <h2>🏬 Chợ</h2>
+                    </div>
+                    <div id="marketplace-listings" class="marketplace-grid">
+                        <!-- Marketplace listings will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Craft View -->
+                <div id="view-craft" class="view hidden">
+                    <div class="view-header">
+                        <h2>⚙️ Chế tạo</h2>
+                    </div>
+                    <div id="craft-machines" class="machines-grid">
+                        <!-- Machines will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Quests View -->
+                <div id="view-quests" class="view hidden">
+                    <div class="view-header">
+                        <h2>📜 Nhiệm vụ</h2>
+                    </div>
+                    <div id="quests-list" class="quests-list">
+                        <!-- Quests will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Friends View -->
+                <div id="view-friends" class="view hidden">
+                    <div class="view-header">
+                        <h2>👥 Bạn bè</h2>
+                    </div>
+                    <div id="friends-list" class="friends-list">
+                        <!-- Friends will be rendered here -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar - Info Panel -->
+            <aside class="sidebar-right">
+                <div class="sidebar-section">
+                    <h3>Thông tin</h3>
+                    <div id="plot-info" class="info-panel">
+                        <p>Nhấn vào một ô để xem chi tiết</p>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Cây nhanh</h3>
+                    <div id="quick-crops" class="quick-crops">
+                        <!-- Quick crop buttons will be rendered here -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div id="modal-dialog" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip hidden"></div>
+
+    <!-- Menu -->
+    <div id="side-menu" class="side-menu hidden">
+        <button onclick="switchView('profile')" class="menu-item">👤 Hồ sơ</button>
+        <button onclick="switchView('settings')" class="menu-item">⚙️ Cài đặt</button>
+        <button onclick="switchView('help')" class="menu-item">❓ Trợ giúp</button>
+        <button onclick="logout()" class="menu-item danger">🚪 Đăng xuất</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/sw.js"></script>
+</body>
+</html>

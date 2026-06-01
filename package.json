@@ -1,0 +1,27 @@
+{
+  "name": "cloud-garden",
+  "version": "1.0.0",
+  "description": "Cloud Garden - Trò chơi trồng cây trên mây",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "php -S localhost:8000",
+    "dev": "php -S localhost:8000 -t public",
+    "build": "echo 'Build complete'",
+    "test": "echo 'No tests configured'",
+    "serve": "php -S 0.0.0.0:8000 -t public"
+  },
+  "keywords": [
+    "game",
+    "farming",
+    "cloud",
+    "casual",
+    "php",
+    "javascript"
+  ],
+  "author": "Cloud Garden Dev",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "prettier": "^2.8.0"
+  }
+}
