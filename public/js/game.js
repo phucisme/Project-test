@@ -334,11 +334,78 @@ class CloudGarden {
 // Global game instance
 let game = new CloudGarden();
 
+// Form handlers
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    
+    const result = await api.login(username, password);
+    if (result.success) {
+        game.init();
+    } else {
+        showNotification('❌ ' + (result.error || 'Đăng nhập thất bại'), 'error');
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirm_password = document.getElementById('register-confirm').value;
+    
+    // Client-side validation
+    if (username.length < 3) {
+        showNotification('❌ Tên đăng nhập phải từ 3 ký tự trở lên', 'error');
+        return;
+    }
+    
+    if (!email.includes('@')) {
+        showNotification('❌ Email không hợp lệ', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('❌ Mật khẩu phải từ 6 ký tự trở lên', 'error');
+        return;
+    }
+    
+    if (password !== confirm_password) {
+        showNotification('❌ Mật khẩu xác nhận không khớp', 'error');
+        return;
+    }
+    
+    const result = await api.register(username, email, password, confirm_password);
+    if (result.success) {
+        showNotification('✅ Đăng ký thành công! Đang vào game...', 'success');
+        setTimeout(() => {
+            game.init();
+        }, 1000);
+    } else {
+        showNotification('❌ ' + (result.error || 'Đăng ký thất bại'), 'error');
+    }
+}
+
 // Initialize on load
 window.addEventListener('load', () => {
     // Register service worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('js/sw.js').catch(err => console.log('SW registration failed:', err));
+    }
+    
+    // Setup form handlers
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
     }
     
     game.init();

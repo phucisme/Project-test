@@ -55,8 +55,8 @@ class GameAPI {
         return this.request('auth', 'login', { username, password });
     }
 
-    async register(username, email, password) {
-        return this.request('auth', 'register', { username, email, password });
+    async register(username, email, password, confirm_password) {
+        return this.request('auth', 'register', { username, email, password, confirm_password });
     }
 
     async logout() {

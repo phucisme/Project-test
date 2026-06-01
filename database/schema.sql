@@ -1,4 +1,5 @@
 -- Cloud Garden Game Database Schema
+-- Order: Base tables (no FK) → Intermediate → Dependent tables
 
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -18,27 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TIMESTAMP NULL
 );
 
-CREATE TABLE IF NOT EXISTS garden_plots (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    x INT NOT NULL,
-    y INT NOT NULL,
-    status ENUM('empty', 'planted', 'ready') DEFAULT 'empty',
-    crop_id INT NULL,
-    planted_at TIMESTAMP NULL,
-    ready_at TIMESTAMP NULL,
-    pot_id INT NULL,
-    decoration_id INT NULL,
-    pest_id INT NULL,
-    watered_at TIMESTAMP NULL,
-    fertilized_at TIMESTAMP NULL,
-    water_times INT DEFAULT 0,
-    fertilize_times INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_plot (user_id, x, y)
-);
+
 
 CREATE TABLE IF NOT EXISTS crops (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -106,14 +87,12 @@ CREATE TABLE IF NOT EXISTS decorations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS pests (
+CREATE TABLE IF NOT EXISTS cloud_themes (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    pest_type_id INT NOT NULL,
-    plot_id INT NOT NULL,
-    attack_time TIMESTAMP,
-    damage INT DEFAULT 60, -- damage to growth time in seconds
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (plot_id) REFERENCES garden_plots(id) ON DELETE CASCADE
+    name VARCHAR(255) NOT NULL,
+    sprite_file VARCHAR(255),
+    default_theme BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS pest_types (
@@ -127,6 +106,39 @@ CREATE TABLE IF NOT EXISTS pest_types (
     damage_max INT DEFAULT 60,
     spawn_rate DECIMAL(5,2) DEFAULT 5, -- percentage
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS garden_plots (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    x INT NOT NULL,
+    y INT NOT NULL,
+    status ENUM('empty', 'planted', 'ready') DEFAULT 'empty',
+    crop_id INT NULL,
+    planted_at TIMESTAMP NULL,
+    ready_at TIMESTAMP NULL,
+    pot_id INT NULL,
+    decoration_id INT NULL,
+    pest_id INT NULL,
+    watered_at TIMESTAMP NULL,
+    fertilized_at TIMESTAMP NULL,
+    water_times INT DEFAULT 0,
+    fertilize_times INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_plot (user_id, x, y)
+);
+
+CREATE TABLE IF NOT EXISTS pests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    pest_type_id INT NOT NULL,
+    plot_id INT NOT NULL,
+    attack_time TIMESTAMP,
+    damage INT DEFAULT 60, -- damage to growth time in seconds
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pest_type_id) REFERENCES pest_types(id) ON DELETE CASCADE,
+    FOREIGN KEY (plot_id) REFERENCES garden_plots(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS pest_drops (
@@ -158,7 +170,28 @@ CREATE TABLE IF NOT EXISTS world_tree_upgrades (
     upgrade_cost_item_id INT,
     upgrade_cost_quantity INT DEFAULT 1,
     upgrade_cost_coins INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (upgrade_cost_item_id) REFERENCES items(id)
+);
+
+CREATE TABLE IF NOT EXISTS recipes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    output_item_id INT NOT NULL,
+    output_quantity INT DEFAULT 1,
+    production_time INT NOT NULL, -- seconds
+    sprite_file VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (output_item_id) REFERENCES items(id)
+);
+
+CREATE TABLE IF NOT EXISTS recipe_ingredients (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    recipe_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT DEFAULT 1,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(id)
 );
 
 CREATE TABLE IF NOT EXISTS machines (
@@ -189,7 +222,9 @@ CREATE TABLE IF NOT EXISTS machine_definitions (
     sprite_file VARCHAR(255),
     overlay_data JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_tier_level (tier, level)
+    UNIQUE KEY unique_tier_level (tier, level),
+    FOREIGN KEY (unlock_cost_item_id) REFERENCES items(id),
+    FOREIGN KEY (upgrade_cost_item_id) REFERENCES items(id)
 );
 
 CREATE TABLE IF NOT EXISTS production_slots (
@@ -202,26 +237,6 @@ CREATE TABLE IF NOT EXISTS production_slots (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE,
     FOREIGN KEY (recipe_id) REFERENCES recipes(id)
-);
-
-CREATE TABLE IF NOT EXISTS recipes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    output_item_id INT NOT NULL,
-    output_quantity INT DEFAULT 1,
-    production_time INT NOT NULL, -- seconds
-    sprite_file VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (output_item_id) REFERENCES items(id)
-);
-
-CREATE TABLE IF NOT EXISTS recipe_ingredients (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    recipe_id INT NOT NULL,
-    item_id INT NOT NULL,
-    quantity INT DEFAULT 1,
-    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES items(id)
 );
 
 CREATE TABLE IF NOT EXISTS expansions (
@@ -340,14 +355,6 @@ CREATE TABLE IF NOT EXISTS player_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_action (user_id, action_type, created_at)
-);
-
-CREATE TABLE IF NOT EXISTS cloud_themes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    sprite_file VARCHAR(255),
-    default_theme BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user_cloud_themes (

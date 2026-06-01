@@ -11,12 +11,63 @@ $db = (new Database())->getPDO();
 
 switch ($action) {
     case 'register':
-        $username = $_POST['username'] ?? '';
-        $email = $_POST['email'] ?? '';
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
 
+        // Validate required fields
         if (!$username || !$email || !$password) {
             echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+            break;
+        }
+
+        // Validate username
+        if (strlen($username) < 3 || strlen($username) > 20) {
+            echo json_encode(['success' => false, 'error' => 'Username must be 3-20 characters']);
+            break;
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
+            echo json_encode(['success' => false, 'error' => 'Username can only contain letters, numbers, dash and underscore']);
+            break;
+        }
+
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid email format']);
+            break;
+        }
+
+        // Validate password strength
+        if (strlen($password) < 6) {
+            echo json_encode(['success' => false, 'error' => 'Password must be at least 6 characters']);
+            break;
+        }
+
+        // Validate password confirmation
+        if ($password !== $confirm_password) {
+            echo json_encode(['success' => false, 'error' => 'Passwords do not match']);
+            break;
+        }
+
+        // Check if username already exists
+        $query = "SELECT id FROM users WHERE username = :username LIMIT 1";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(['success' => false, 'error' => 'Username already exists']);
+            break;
+        }
+
+        // Check if email already exists
+        $query = "SELECT id FROM users WHERE email = :email LIMIT 1";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(['success' => false, 'error' => 'Email already registered']);
             break;
         }
 
@@ -72,7 +123,15 @@ switch ($action) {
             }
 
             $_SESSION['user_id'] = $user_id;
-            echo json_encode(['success' => true, 'user_id' => $user_id, 'message' => 'Account created']);
+            echo json_encode([
+                'success' => true, 
+                'user_id' => $user_id,
+                'username' => $username,
+                'email' => $email,
+                'level' => 1,
+                'coins' => INITIAL_COINS,
+                'message' => 'Account created successfully'
+            ]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
