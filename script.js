@@ -1,0 +1,9 @@
+const APPS_SCRIPT_URL = "";
+Chart.defaults.font.family = "DM Sans, sans-serif";
+Chart.defaults.color = "#52615d";
+new Chart(document.getElementById("skillsChart"), { type: "bar", data: { labels: ["HTML/CSS", "JavaScript", "React", "UI/UX", "Node.js"], datasets: [{ data: [92, 84, 78, 88, 62], backgroundColor: ["#f06449", "#f06449", "#5b929c", "#f06449", "#5b929c"], borderRadius: 0, barThickness: 18 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => ` ${context.raw}%` } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { callback: (value) => `${value}%` }, grid: { color: "#d1c6b8" } }, x: { grid: { display: false } } } } });
+mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: { primaryColor: "#f06449", primaryTextColor: "#172525", primaryBorderColor: "#172525", lineColor: "#172525", secondaryColor: "#89b8be", tertiaryColor: "#f5f0e8", fontFamily: "DM Sans" } });
+const form = document.getElementById("contactForm");
+const status = document.getElementById("formStatus");
+const submitButton = document.getElementById("submitButton");
+form.addEventListener("submit", async (event) => { event.preventDefault(); if (!form.checkValidity()) { form.classList.add("was-validated"); return; } if (!APPS_SCRIPT_URL) { status.textContent = "Form đang ở chế độ xem trước. Hãy thêm URL Apps Script."; status.className = "form-error"; return; } submitButton.disabled = true; status.textContent = "Đang gửi..."; try { await fetch(APPS_SCRIPT_URL, { method: "POST", mode: "no-cors", body: new FormData(form) }); form.reset(); status.textContent = "Đã gửi thành công. Kiểm tra email của bạn nhé!"; } catch (error) { status.textContent = "Có lỗi khi gửi. Vui lòng thử lại sau."; status.className = "form-error"; } finally { submitButton.disabled = false; } });
